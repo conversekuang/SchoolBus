@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>公交线路查询</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/> 
+    <style type="text/css">
+       html,body,#container{
+           height:100%;
+       }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<input id="color" ></input>
+
+<script type="text/javascript"
+            src="https://webapi.amap.com/maps?v=1.4.13&key=ea1d8d98a1a85b07859a320999b9aaec&plugin=AMap.LineSearch"></script>
+<script language="javascript">
+    /*
+     * 该示例主要流程分为三个步骤
+     * 1. 首先调用公交路线查询服务(lineSearch)
+     * 2. 根据返回结果解析，输出解析结果(lineSearch_Callback)
+     * 3. 在地图上绘制公交线路()
+     */
+    var map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: [120.763391,30.76432],//地图中心点
+        zoom: 13, //地图显示的缩放级别
+        mapStyle: "amap://styles/grey"
+    });
+    var linesearch;
+    var tmpline 
+    /*公交线路查询*/
+
+
+    function lineSearch(busLineName, color) {
+        center = new AMap.Marker({
+            position: [120.772838,30.73967],
+            map: map,
+            title: '嘉兴一中',
+            icon: 'https://vdata.amap.com/icons/b18/1/2.png'
+        })
+
+        if(!busLineName) return;
+        //实例化公交线路查询类，只取回一条路线
+        if(!linesearch){
+            linesearch = new AMap.LineSearch({
+                pageIndex: 1,
+                city: '嘉兴市',
+                pageSize: 1,
+                extensions: 'all'
+            });
+        }
+        //搜索“536”相关公交线路
+        linesearch.search(busLineName, function(status, result) {
+            // map.clearMap()
+            if (status === 'complete' && result.info === 'OK') {
+                lineSearch_Callback(result, color);
+            } else {
+                alert(result);
+            }
+        });
+     
+    }
+    /*公交路线查询服务返回数据解析概况*/
+    function lineSearch_Callback(data, color) {
+        var lineArr = data.lineInfo;
+        var lineNum = data.lineInfo.length;
+        if (lineNum == 0) {
+        } else {
+            for (var i = 0; i < lineNum; i++) {
+                var pathArr = lineArr[i].path;
+                var stops = lineArr[i].via_stops;
+                var startPot = stops[0].location;
+                var endPot = stops[stops.length - 1].location;
+                if (i == 0) //作为示例，只绘制一条线路
+                drawbusLine(startPot, endPot, pathArr, color);
+            }
+        }
+    }
+    /*绘制路线*/
+    function drawbusLine(startPot, endPot, BusArr, color) {
+        //绘制起点，终点
+        start = new AMap.Marker({
+            map: map,
+            position: startPot, //基点位置
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/start.png",
+            zIndex: 10
+        });
+        end = new AMap.Marker({
+            map: map,
+            position: endPot, //基点位置
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/end.png",
+            zIndex: 10
+        });
+        //绘制乘车的路线
+        busPolyline = new AMap.Polyline({
+            map: map,
+            path: BusArr,
+            strokeColor: color,//线颜色"#09f"randomColor()
+            strokeOpacity: 0.6,//线透明度
+            isOutline:true,
+            outlineColor:'grey',
+            strokeWeight: 3,//线宽
+            bubble:true
+        });
+        map.setFitView();
+        // tmpline =  lineObject(start, end, busPolyline)
+    }
+
+
+    // function lineObject(start, end, line){
+    //     oj.start = start
+    //     oj.end =  end
+    //     oj.line = line
+    //     return oj
+    // }
+
+
+     var buslines = ['10路','28路','56路夜班','80路夜班','95路','k162路','k171路','游1路','游8路', 
+        '88路','30路','99路内环','163路/k163路','235路','k162路','k171路','游8路','28路',
+        '30路夜班','153路','99路外环'
+        ]
+    var colors = ['#A3A19A', '#6B985C', '#EE32DD', '#D71CCD', '#E99EB9', '#C52C8C', '#F167C7', '#354CA5', '#FB729A', '#76AB8D', '#9158F6', '#2F46B1', '#B5B58D', '#E5A6F1', '#CFFCA7', '#881F27', '#6C8B13', '#A58E95', '#A661A5', '#69C1D2', '#3EE1F8']
+    // var buslines = ['10路','28路']
+    // var colors = ['#A3A19A', '#6B985C']
+
+    for (var i=0 ; i < buslines.length ;i++){
+        busLineName = buslines[i]
+        color = colors[i]
+        lineSearch(busLineName, color)
+        // console.log(tmpline.start)
+        // console.log(tmpline.end)
+        // console.log(tmpline.line)
+    }
+
+</script>
+</body>
+</html>

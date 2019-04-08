@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>中关村方向</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <style>
+        html, body, #container {
+            height: 100%;
+            width: 100%;
+        }
+
+        .input-card .btn{
+            margin-right: 1.2rem;
+            width: 9rem;
+        }
+
+        .input-card .btn:last-child{
+            margin-right: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div class="input-card">
+    <h4>轨迹回放控制</h4>
+    <div class="input-item">
+        <input type="button" class="btn" value="开始动画" id="start" onclick="startAnimation()"/>
+        <input type="button" class="btn" value="暂停动画" id="pause" onclick="pauseAnimation()"/>
+    </div>
+    <div class="input-item">
+        <input type="button" class="btn" value="继续动画" id="resume" onclick="resumeAnimation()"/>
+        <input type="button" class="btn" value="停止动画" id="stop" onclick="stopAnimation()"/>
+    </div>
+</div>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.14&key=226b378736e355d63444903944631390"></script>
+<script>
+    var marker, lineArr =[[120.772826, 30.738178], [120.771517, 30.738266], [120.771351, 30.738275], [120.769522, 30.738381], [120.761341, 30.738851], [120.760746, 30.738874], [120.760526, 30.738893], [120.756755, 30.739137], [120.756679, 30.739133], [120.755526, 30.739202], [120.755049, 30.739239], [120.753009, 30.739369], [120.750198, 30.739526], [120.743471, 30.740024], [120.74139, 30.740199], [120.738579, 30.740453], [120.737426, 30.740651], [120.737259, 30.740707], [120.734646, 30.741591], [120.734115, 30.741775], [120.733241, 30.741969], [120.733241, 30.741969], [120.72565, 30.741747], [120.722943, 30.741911], [120.722471, 30.741916], [120.721682, 30.74187], [120.71812, 30.741362], [120.716232, 30.747015], [120.715717, 30.748416], [120.71576, 30.749431], [120.715481, 30.752372], [120.715492, 30.758531], [120.713738, 30.758489], [120.711764, 30.758296], [120.706136, 30.757365], [120.703851, 30.757088], [120.697736, 30.757027], [120.697639, 30.754926], [120.697575, 30.754308], [120.697446, 30.754078], [120.697199, 30.753654], [120.696915, 30.75335], [120.696443, 30.752962], [120.695847, 30.752566], [120.690097, 30.749556], [120.686513, 30.756157], [120.684196, 30.760675]];
+    var stopArr = [[120.71616,30.746974],[120.715442,30.751123],[120.697717,30.757032],[120.697117,30.753731],[120.692477,30.755688]]
+    var lineArr2 = [[120.772826, 30.738178], [120.771517, 30.738266], [120.771351, 30.738275], [120.769522, 30.738381], [120.761341, 30.738851], [120.760746, 30.738874], [120.760526, 30.738893], [120.756755, 30.739137], [120.756679, 30.739133], [120.755526, 30.739202], [120.755049, 30.739239], [120.753009, 30.739369], [120.750198, 30.739526], [120.743471, 30.740024], [120.74139, 30.740199], [120.738579, 30.740453], [120.737426, 30.740651], [120.737259, 30.740707], [120.734646, 30.741591], [120.734115, 30.741775], [120.733241, 30.741969], [120.733241, 30.741969], [120.72565, 30.741747], [120.722943, 30.741911], [120.722471, 30.741916], [120.721682, 30.74187], [120.71812, 30.741362], [120.716232, 30.747015], [120.715717, 30.748416], [120.71576, 30.749431], [120.715481, 30.752372], [120.715492, 30.758531], [120.715503, 30.763879], [120.709065, 30.763713]]
+    var lineArr3 = [[120.772826, 30.738178], [120.771517, 30.738266], [120.768664, 30.751686], [120.768095, 30.756443], [120.767966, 30.757024], [120.767194, 30.757882], [120.766722, 30.758785], [120.766566, 30.759265], [120.766464, 30.762256], [120.766924, 30.765223], [120.766951, 30.765886], [120.766532, 30.76803], [120.766457, 30.770311], [120.763045, 30.780359], [120.759741, 30.786682], [120.756737, 30.78624], [120.744249, 30.785281], [120.742425, 30.791936], [120.740837, 30.796488]]
+
+    var map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: [120.761569,30.738905],
+        zoom: 17
+    });
+
+    marker = new AMap.Marker({
+        map: map,
+        position: [120.772826, 30.738178],
+        icon: "https://webapi.amap.com/images/car.png",
+        offset: new AMap.Pixel(-26, -13),
+        autoRotation: true,
+        angle:-90,
+    });
+
+    // 绘制轨迹
+    var polyline = new AMap.Polyline({
+        map: map,
+        path: lineArr,
+        showDir:true,
+        strokeColor: "#28F",  //线颜色
+        // strokeOpacity: 1,     //线透明度
+        strokeWeight: 6,      //线宽
+        // strokeStyle: "solid"  //线样式
+    });
+
+    var passedPolyline = new AMap.Polyline({
+        map: map,
+        // path: lineArr,
+        strokeColor: '#A52A2A'    ,  //线颜色"#AF5"
+        // strokeOpacity: 1,     //线透明度
+        strokeWeight: 6,      //线宽
+        // strokeStyle: "solid"  //线样式
+    });
+
+
+    marker.on('moving', function (e) {
+        passedPolyline.setPath(e.passedPath);
+    });
+
+    map.setFitView();
+
+
+    // for (var i = lineArr.length - 1; i >= 0; i--) {
+    //     new AMap.Marker({
+    //     map: map,
+    //     // icon: './dir-via-marker.png',
+    //     position: lineArr[i],
+    //     offset: new AMap.Pixel(-13, -30),
+    //     imageSize: new AMap.Size(25, 34),
+    // });
+    // }
+
+    function startAnimation () {
+        marker.moveAlong(lineArr, 2000);
+    }
+
+    function pauseAnimation () {
+        marker.pauseMove();
+    }
+
+    function resumeAnimation () {
+        marker.resumeMove();
+    }
+
+    function stopAnimation () {
+        marker.stopMove();
+    }
+</script>
+</body>
+</html>
